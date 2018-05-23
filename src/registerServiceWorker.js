@@ -9,17 +9,17 @@
 // This link also includes instructions on opting out of this behavior.
 
 const haveSupport = 'serviceWorker' in navigator
-const isLocalhost = Boolean(window.location.hostname === 'localhost'
-  || window.location.hostname === '[::1]'
-  || /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-      .test(window.location.hostname))
+const isLocalhost = Boolean(window.location.hostname === 'localhost' ||
+  window.location.hostname === '[::1]' ||
+  /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    .test(window.location.hostname))
 
 // Check if the service worker can be found. If it can't reload the page.
 const checkValidServiceWorker = swUrl => fetch(swUrl)
   .then(response => {
     // Ensure service worker exists, and that we really are getting a JS file.
-    if (response.status === 404
-      || response.headers.get('content-type').indexOf('javascript') === -1) {
+    if (response.status === 404 ||
+      response.headers.get('content-type').indexOf('javascript') === -1) {
       // No service worker found. Probably a different app. Reload the page.
       return navigator.serviceWorker.ready
         .then(registration => registration.unregister())
@@ -47,7 +47,7 @@ const register = () => {
     // Lets check if a service worker still exists or not.
     return Promise.all([
       checkValidServiceWorker(swUrl),
-      navigator.serviceWorker.ready, // learn more https://goo.gl/SC7cgQ
+      navigator.serviceWorker.ready // learn more https://goo.gl/SC7cgQ
     ]).catch(console.error)
   })
 }
@@ -80,5 +80,7 @@ const registerValidSW = swUrl => navigator.serviceWorker
 const unregister = () => haveSupport && navigator.serviceWorker.ready
   .then(registration => registration.unregister())
 
-export unregister
+export {
+  unregister
+}
 export default register
