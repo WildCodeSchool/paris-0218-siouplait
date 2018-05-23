@@ -8,15 +8,28 @@
 // To learn more about the benefits of this model, read https://goo.gl/KwvDNy.
 // This link also includes instructions on opting out of this behavior.
 
+const haveSupport = 'serviceWorker' in navigator
 const isLocalhost = Boolean(window.location.hostname === 'localhost'
   || window.location.hostname === '[::1]'
   || /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
       .test(window.location.hostname))
 
-export default const register = () => {
-  if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) {
-    return
-  }
+// Check if the service worker can be found. If it can't reload the page.
+const checkValidServiceWorker = swUrl => fetch(swUrl)
+  .then(response => {
+    // Ensure service worker exists, and that we really are getting a JS file.
+    if (response.status === 404
+      || response.headers.get('content-type').indexOf('javascript') === -1) {
+      // No service worker found. Probably a different app. Reload the page.
+      return navigator.serviceWorker.ready
+        .then(registration => registration.unregister())
+        .then(() => window.location.reload())
+    }
+    return registerValidSW(swUrl)
+  })
+
+const register = () => {
+  if (process.env.NODE_ENV !== 'production' || !haveSupport) return
   // The URL constructor is available in all browsers that support SW.
   const publicUrl = new URL(process.env.PUBLIC_URL, window.location)
   if (publicUrl.origin !== window.location.origin) {
@@ -30,14 +43,12 @@ export default const register = () => {
     const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`
 
     if (!isLocalhost) return registerValidSW(swUrl)
-    // This is running on localhost. Lets check if a service worker still exists or not.
-    checkValidServiceWorker(swUrl)
-
-    // Add some additional logging to localhost, pointing developers to the
-    // service worker/PWA documentation.
-    navigator.serviceWorker.ready
-      .then(() => console.log('This web app is being served cache-first by'
-        + ' a service worker. To learn more, visit https://goo.gl/SC7cgQ'))
+    // This is running on localhost.
+    // Lets check if a service worker still exists or not.
+    return Promise.all([
+      checkValidServiceWorker(swUrl),
+      navigator.serviceWorker.ready, // learn more https://goo.gl/SC7cgQ
+    ]).catch(console.error)
   })
 }
 
@@ -64,36 +75,10 @@ const registerValidSW = swUrl => navigator.serviceWorker
       }
     }
   })
-  .catch(error =>
-    console.error('Error during service worker registration:', error))
+  .catch(console.error)
 
-const checkValidServiceWorker = swUrl => {
-  // Check if the service worker can be found. If it can't reload the page.
-  fetch(swUrl)
-    .then(response => {
-      // Ensure service worker exists, and that we really are getting a JS file.
-      if (
-        response.status === 404 ||
-        response.headers.get('content-type').indexOf('javascript') === -1
-      ) {
-        // No service worker found. Probably a different app. Reload the page.
-        navigator.serviceWorker.ready.then(registration => {
-          registration.unregister().then(() => {
-            window.location.reload()
-          })
-        })
-      } else {
-        // Service worker found. Proceed as normal.
-        registerValidSW(swUrl)
-      }
-    })
-    .catch(() =>
-      console.log('No internet connection found. App is running in offline mode.'))
-}
+const unregister = () => haveSupport && navigator.serviceWorker.ready
+  .then(registration => registration.unregister())
 
-export const unregister = () => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready
-      .then(registration => registration.unregister())
-  }
-}
+export unregister
+export default register
